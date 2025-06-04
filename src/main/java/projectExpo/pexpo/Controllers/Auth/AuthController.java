@@ -14,6 +14,8 @@ import projectExpo.pexpo.Models.DAO.Usuario.InterfaceLogin;
 import projectExpo.pexpo.Models.DTO.DTOUsuario;
 import projectExpo.pexpo.Utils.JWTUtils;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping(value = "/api/auth")
 public class AuthController {
@@ -38,11 +40,24 @@ public class AuthController {
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");
-            cookie.setMaxAge(7*24*60*60);
+            cookie.setMaxAge(1*24*60*60);
 
             response.addCookie(cookie);
             return ResponseEntity.ok("Inicio de sesión exitoso");
         }
         return ResponseEntity.status(401).body("Credenciales inválidas");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response){
+        //Crear cookie vacía para sobreescribir la existente
+        Cookie cookie = new Cookie("loginToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0); //Expiración inmediata
+
+        response.addCookie(cookie);
+        return ResponseEntity.ok().body(Map.of("message", "Sessión cerrada exitosamente"));
     }
 }

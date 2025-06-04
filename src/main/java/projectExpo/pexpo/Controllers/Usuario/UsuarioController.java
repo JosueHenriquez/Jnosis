@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import projectExpo.pexpo.Models.DAO.Usuario.InterfaceUsuario;
 import projectExpo.pexpo.Models.DTO.DTOUsuario;
 import projectExpo.pexpo.Services.Argon2Hash;
-
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +51,7 @@ public class UsuarioController {
      */
     @GetMapping("/usuarios")
     public List<DTOUsuario> datosUsuarios() {
-        System.out.println("Entre al enpoint");
+        //System.out.println("Entre al enpoint");
         return acceso.datosUsuarios();
     }
 
