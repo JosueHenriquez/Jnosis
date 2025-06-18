@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import projectExpo.pexpo.Models.DAO.Usuario.InterfaceLogin;
+import projectExpo.pexpo.Config.Argon2PasswordEncoder;
 import projectExpo.pexpo.Models.DTO.DTOUsuario;
+import projectExpo.pexpo.Services.Auth.AuthService;
 import projectExpo.pexpo.Utils.JWTUtils;
 
 import java.util.Map;
@@ -27,12 +28,14 @@ public class AuthController {
     private JWTUtils jwtUtils;
 
     @Autowired
-    private InterfaceLogin ILogin;
+    private AuthService serviceAuth;
 
     @PostMapping(value = "/login")
     public ResponseEntity<String> login(@RequestBody DTOUsuario DTOlog, HttpServletResponse response, HttpServletRequest request){
-
-        if(ILogin.iniciarSesion(DTOlog) != null){
+        if (!(DTOlog.getCorreo().isEmpty() || DTOlog.getContrasena().isEmpty() ||
+        DTOlog.getCorreo() == null || DTOlog.getContrasena() == null)){
+            //System.out.println("Entre a la condicion");
+            serviceAuth.LogIn(DTOlog.getCorreo(), DTOlog.getContrasena());
             String token = jwtUtils.create(String.valueOf(DTOlog.getId()), DTOlog.getNombre());
 
             //Crear la cookie

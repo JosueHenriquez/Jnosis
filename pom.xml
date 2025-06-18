@@ -115,7 +115,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-
+		<!--##############################################################-->
 		<!--Dependencia para encriptación de contraseñas-->
 		<dependency>
 			<groupId>de.mkammerer</groupId>
@@ -123,6 +123,12 @@
 			<version>2.5</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.70</version> <!-- Verifica la versión más reciente -->
+		</dependency>
+		<!--##############################################################-->
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
@@ -133,6 +139,12 @@
 		     <groupId>jakarta.xml.bind</groupId>
 		     <artifactId>jakarta.xml.bind-api</artifactId>
 		     <version>3.0.0</version>
+		</dependency>
+
+		<!--Dependencia para validación, permite utilizar @Valid-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
 	</dependencies>

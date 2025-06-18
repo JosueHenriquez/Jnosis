@@ -1,34 +1,37 @@
 package projectExpo.pexpo.Models.DTO;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Entity //Indica que hará referencia a la base de datos
-@Table(name = "TBUSUARIO")
 @ToString @EqualsAndHashCode
-
+@Getter @Setter
 public class DTOUsuario {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_usuario")
-    @SequenceGenerator(name = "seq_usuario", sequenceName = "seq_usuario", allocationSize = 1)
-    @Getter @Setter @Column(name = "IDUSUARIO")
     private Long id;
-    @Getter @Setter @Column(name = "NOMBRE")
+
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
-    @Getter @Setter @Column(name = "APELLIDO")
+
+    @NotBlank(message = "El apellido es obligatorio")
     private String apellido;
+
     @Getter @Setter @Column(name = "IDGRUPOEXPO")
     private long idGrupoExpo;
+
     @Getter @Setter @Column(name = "IDROL")
     private long idRol;
-    @Getter @Setter @Column(name = "CORREO")
+
+    @Email(message = "Debe ser un correo valido")
     private String correo;
-    @Getter @Setter @Column(name = "CONTRASENA")
+
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String contrasena;
-    @Getter @Setter @Column(name = "IDCARGO")
+
     private long idCargo;
 }

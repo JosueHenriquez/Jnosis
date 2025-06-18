@@ -1,13 +1,19 @@
 package projectExpo.pexpo.Controllers.Usuario;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import projectExpo.pexpo.Models.DAO.Usuario.InterfaceUsuario;
+import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExcepcionDatosDuplicados;
+import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExceptionsUsuarioNoEncontrado;
 import projectExpo.pexpo.Models.DTO.DTOUsuario;
-import projectExpo.pexpo.Services.Argon2Hash;
+import projectExpo.pexpo.Services.Usuarios.ServiceUsuario;
+
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +36,7 @@ public class UsuarioController {
      * y dámelo automáticamente."
      */
     @Autowired
-    private InterfaceUsuario acceso;
-
+    private ServiceUsuario acceso;
     /**
      * @GetMapping - La "dirección" del endpoint
      * Qué hace: Define la ruta URL y el tipo de petición HTTP que atenderá este método
@@ -51,62 +56,94 @@ public class UsuarioController {
      */
     @GetMapping("/usuarios")
     public List<DTOUsuario> datosUsuarios() {
-        //System.out.println("Entre al enpoint");
-        return acceso.datosUsuarios();
+        return acceso.obtenerUsuarios();
     }
 
     @PostMapping("/ingresarUsuario")
-    public ResponseEntity<?> registrarUsuario(@RequestBody DTOUsuario usuario, HttpServletRequest request){
+    public ResponseEntity<Map<String, Object>> registrarUsuario(@Valid @RequestBody DTOUsuario usuario, HttpServletRequest request){
         try{
-            System.out.println("Entre al enpoint");
-            Argon2Hash objHash = new Argon2Hash();
-            objHash.setPassword(usuario.getContrasena());
-            usuario.setContrasena(objHash.PasswordHash());
-
-            acceso.registrarUsuario(usuario);
-            return ResponseEntity.ok().body(Map.of(
+            //Intento de guardar usuario
+            DTOUsuario respuesta = acceso.registrarUsuario(usuario);
+            if (respuesta == null){
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", "Inserción incorrecta",
+                        "errorType", "VALIDATION_ERROR",
+                        "message", "Datos del usuario inválidos"
+                ));
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "status","sucess",
-                    "message","Usuario registrado exitosamente"));
+                    "data",respuesta));
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                             "status", "error",
-                            "message", "Error al actualizar usuario",
+                            "message", "Error al registrar usuario",
                             "detail", e.getMessage()
                     ));
         }
     }
 
     @PutMapping("/modificarUsuario/{id}")
-    public ResponseEntity<?> modificarUsuario(@PathVariable Long id, @RequestBody DTOUsuario usuario){
+    public ResponseEntity<?> modificarUsuario(
+            @PathVariable Long id,
+            @Valid @RequestBody DTOUsuario usuario,
+            BindingResult bindingResult){
+
+        if (bindingResult.hasErrors()){
+            Map<String, String> errores = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errores.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.badRequest().body(errores);
+        }
+
         try{
-            acceso.actualizarUsuario(id, usuario);
-            return ResponseEntity.ok().body(Map.of(
-                    "status", "Completado",
-                    "message", "Usuario actualizado exitosamente"));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "status", "error",
-                            "message", "Error al actualizar usuario",
-                            "detail", e.getMessage()
-                    ));
+            DTOUsuario usuarioActualizado = acceso.actualizarUsuario(id, usuario);
+            return ResponseEntity.ok(usuarioActualizado);
+        }
+
+        catch (ExceptionsUsuarioNoEncontrado e){
+            return ResponseEntity.notFound().build();
+        }
+
+        catch (ExcepcionDatosDuplicados e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                Map.of("error", "Datos duplicados","campo", e.getCampoDuplicado())
+            );
         }
     }
 
+    // Mapea este metodo a una petición DELETE con un parámetro de ruta {id}
     @DeleteMapping("/eliminarusuario/{id}")
-    public ResponseEntity<?> eliminarUsuario(@PathVariable Long id){
-        try{
-            acceso.removerUsuario(id);
+    public ResponseEntity<Map<String, Object>> eliminarUsuario(@PathVariable Long id) {
+        try {
+            // Intenta eliminar el usuario usando el servicio 'acceso'
+            // Si removerUsuario retorna false (no encontró el usuario)
+            if (!acceso.removerUsuario(id)) {
+                // Retorna una respuesta 404 (Not Found) con información detallada
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        // Agrega un header personalizado
+                        .header("X-Mensaje-Error", "Usuario no encontrado")
+                        // Cuerpo de la respuesta con detalles del error
+                        .body(Map.of(
+                                "error", "Not found",  // Tipo de error
+                                "mensaje", "El usuario no ha sido encontrado",  // Mensaje descriptivo
+                                "timestamp", Instant.now().toString()  // Marca de tiempo del error
+                        ));
+            }
+
+            // Si la eliminación fue exitosa, retorna 200 (OK) con mensaje de confirmación
             return ResponseEntity.ok().body(Map.of(
-                    "status", "Proceso completado",
-                    "message", "Usuario eliminado existosamente"
+                    "status", "Proceso completado",  // Estado de la operación
+                    "message", "Usuario eliminado exitosamente"  // Mensaje de éxito
             ));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "status", "Error",
-                    "message","Error al eliminar el usuario",
-                    "detail", e.getMessage()
+
+        } catch (Exception e) {
+            // Si ocurre cualquier error inesperado, retorna 500 (Internal Server Error)
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "status", "Error",  // Indicador de error
+                    "message", "Error al eliminar el usuario",  // Mensaje general
+                    "detail", e.getMessage()  // Detalles técnicos del error (para debugging)
             ));
         }
     }

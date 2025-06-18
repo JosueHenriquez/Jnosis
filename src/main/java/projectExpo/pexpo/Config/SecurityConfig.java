@@ -49,6 +49,6 @@ public class SecurityConfig {
     // Configura el encriptador de contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new Argon2PasswordEncoder();
     }
 }
