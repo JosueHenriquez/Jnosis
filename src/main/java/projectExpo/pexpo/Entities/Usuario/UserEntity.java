@@ -9,7 +9,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "TBUSUARIO")
 @Getter @Setter @ToString @EqualsAndHashCode
-public class EntityUsuario {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_usuario")

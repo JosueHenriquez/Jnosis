@@ -2,12 +2,12 @@ package projectExpo.pexpo.Repositories.Login;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import projectExpo.pexpo.Entities.Usuario.EntityUsuario;
+import projectExpo.pexpo.Entities.Usuario.UserEntity;
 
 import java.util.Optional;
 
 @Repository
-public interface LoginRepository extends JpaRepository<EntityUsuario, Long> {
+public interface LoginRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<EntityUsuario> findByCorreo(String correo);
+    Optional<UserEntity> findByCorreo(String correo);
 }

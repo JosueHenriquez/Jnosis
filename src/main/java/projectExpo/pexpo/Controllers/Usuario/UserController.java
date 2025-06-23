@@ -9,8 +9,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExcepcionDatosDuplicados;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExceptionsUsuarioNoEncontrado;
-import projectExpo.pexpo.Models.DTO.DTOUsuario;
-import projectExpo.pexpo.Services.Usuarios.ServiceUsuario;
+import projectExpo.pexpo.Models.DTO.UserDTO;
+import projectExpo.pexpo.Services.Usuarios.UserService;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api") //Todas las URLs (endPoint, se anteceden de la palabra api, por ejemplo api/usuarios)
-public class UsuarioController {
+public class UserController {
 
     /**
      * Imagina que estás en una cocina y necesitas un cuchillo. Tienes dos opciones:
@@ -36,7 +36,7 @@ public class UsuarioController {
      * y dámelo automáticamente."
      */
     @Autowired
-    private ServiceUsuario acceso;
+    private UserService acceso;
     /**
      * @GetMapping - La "dirección" del endpoint
      * Qué hace: Define la ruta URL y el tipo de petición HTTP que atenderá este método
@@ -55,15 +55,15 @@ public class UsuarioController {
      * @return
      */
     @GetMapping("/usuarios")
-    public List<DTOUsuario> datosUsuarios() {
-        return acceso.obtenerUsuarios();
+    public List<UserDTO> datosUsuarios() {
+        return acceso.getAllUsers();
     }
 
     @PostMapping("/ingresarUsuario")
-    public ResponseEntity<Map<String, Object>> registrarUsuario(@Valid @RequestBody DTOUsuario usuario, HttpServletRequest request){
+    public ResponseEntity<Map<String, Object>> registrarUsuario(@Valid @RequestBody UserDTO usuario, HttpServletRequest request){
         try{
             //Intento de guardar usuario
-            DTOUsuario respuesta = acceso.registrarUsuario(usuario);
+            UserDTO respuesta = acceso.insertUser(usuario);
             if (respuesta == null){
                 return ResponseEntity.badRequest().body(Map.of(
                         "status", "Inserción incorrecta",
@@ -87,7 +87,7 @@ public class UsuarioController {
     @PutMapping("/modificarUsuario/{id}")
     public ResponseEntity<?> modificarUsuario(
             @PathVariable Long id,
-            @Valid @RequestBody DTOUsuario usuario,
+            @Valid @RequestBody UserDTO usuario,
             BindingResult bindingResult){
 
         if (bindingResult.hasErrors()){
@@ -98,7 +98,7 @@ public class UsuarioController {
         }
 
         try{
-            DTOUsuario usuarioActualizado = acceso.actualizarUsuario(id, usuario);
+            UserDTO usuarioActualizado = acceso.actualizarUsuario(id, usuario);
             return ResponseEntity.ok(usuarioActualizado);
         }
 

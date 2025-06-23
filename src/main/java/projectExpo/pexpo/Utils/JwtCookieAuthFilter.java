@@ -44,7 +44,7 @@ public class JwtCookieAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        System.out.println("Voy a extraer el token");
+        //System.out.println("Voy a extraer el token");
         // Extraer token de cookies
         try {
             String token = extractTokenFromCookies(request);

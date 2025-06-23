@@ -1,6 +1,5 @@
 package projectExpo.pexpo.Models.DTO;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -11,7 +10,7 @@ import lombok.ToString;
 
 @ToString @EqualsAndHashCode
 @Getter @Setter
-public class DTOUsuario {
+public class UserDTO {
 
     private Long id;
 
@@ -21,10 +20,10 @@ public class DTOUsuario {
     @NotBlank(message = "El apellido es obligatorio")
     private String apellido;
 
-    @Getter @Setter @Column(name = "IDGRUPOEXPO")
+    @Getter @Setter
     private long idGrupoExpo;
 
-    @Getter @Setter @Column(name = "IDROL")
+    @Getter @Setter
     private long idRol;
 
     @Email(message = "Debe ser un correo valido")

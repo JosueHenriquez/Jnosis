@@ -31,8 +31,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())  // Nuevo estilo lambda
                 .authorizeHttpRequests(auth -> auth  // Cambia authorizeRequests por authorizeHttpRequests
-                        .requestMatchers("/api/ingresarUsuario").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers( //Aqui van todos los endPoints públicos que no requieren de un JWT
+                                "/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
