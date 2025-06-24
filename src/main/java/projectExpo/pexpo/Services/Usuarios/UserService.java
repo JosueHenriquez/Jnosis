@@ -27,7 +27,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserDTO registrarUsuario(UserDTO userDto){
+    public UserDTO insertUser(UserDTO userDto){
         /**
          * Se valida si el usuario es nulo, es decir, si contiene información.
          * Se valida si la contraseña es nula o vacía
@@ -43,7 +43,7 @@ public class UserService {
              */
             Argon2PasswordEncoder argon2PasswordEncoder = new Argon2PasswordEncoder();
             //Se asigna nuevamente al atributo de contraseña de la clase usuario la contraseña ya encriptada.
-            String contrasenaHash = argon2PasswordEncoder.encode(userDto.getContrasena());
+            String contrasenaHash = argon2PasswordEncoder.HashPassword(userDto.getContrasena());
             userDto.setContrasena(contrasenaHash);
             UserEntity userEntity = convertirAUsuarioEntity(userDto);
             UserEntity usuarioGuardado = repo.save(userEntity);

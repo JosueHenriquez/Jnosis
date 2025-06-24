@@ -124,15 +124,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.70</version> <!-- Verifica la versión más reciente -->
-		</dependency>
-		<!--##############################################################-->
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>3.0.0</version>
+			<groupId>de.mkammerer</groupId>
+			<artifactId>argon2-jvm-nolibs</artifactId>
+			<version>2.11</version>
 		</dependency>
 
 		<dependency>
