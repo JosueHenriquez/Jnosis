@@ -31,23 +31,37 @@ public class AuthController {
 
     @PostMapping(value = "/login")
     public ResponseEntity<String> login(@RequestBody UserDTO DTOlog, HttpServletResponse response, HttpServletRequest request){
-        if (!(DTOlog.getCorreo().isEmpty() || DTOlog.getContrasena().isEmpty() ||
-        DTOlog.getCorreo() == null || DTOlog.getContrasena() == null)){
-            //System.out.println("Entre a la condicion");
-            serviceAuth.LogIn(DTOlog.getCorreo(), DTOlog.getContrasena());
-            String token = jwtUtils.create(String.valueOf(DTOlog.getId()), DTOlog.getNombre());
-
-            //Crear la cookie
-            Cookie cookie = new Cookie("loginToken", token); //Nombre y valor de la cookie
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(1*24*60*60);
-
-            response.addCookie(cookie);
+        //Se valida que los datos no esten vacíos
+        if (!(DTOlog.getCorreo().isEmpty() || DTOlog.getContrasena().isEmpty())){
+            /*
+             * Se intenta iniciar sesión enviando el correo y la contraseña, en caso los valores
+             * sean incorrectos retornará un FALSE pero se niega la respuesta para que sea verdadero y
+             * mostrar el error. En caso la respuesta sea TRUE, se niega la respuesta para que no muestre
+             * el mensaje de error y continue con la ejecución del código.
+             */
+            if(!serviceAuth.LogIn(DTOlog.getCorreo(), DTOlog.getContrasena())){
+                return ResponseEntity.status(401).body("Credenciales incorrectas");
+            }
+            addTokenCookie(response, DTOlog);
             return ResponseEntity.ok("Inicio de sesión exitoso");
         }
-        return ResponseEntity.status(401).body("Credenciales inválidas");
+        return ResponseEntity.status(401).body("Error, verifica que hayas compartida todas las credenciales necesarias para iniciar sesión.");
+    }
+
+    /**
+     * Se genera el token y se guarda en la Cookie
+     * @param response
+     * @param DTOlog
+     */
+    void addTokenCookie(HttpServletResponse response, UserDTO DTOlog){
+        String token = jwtUtils.create(String.valueOf(DTOlog.getId()), DTOlog.getNombre());
+        //Crear la cookie
+        Cookie cookie = new Cookie("loginToken", token); //Nombre y valor de la cookie
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(1*24*60*60);
+        response.addCookie(cookie);
     }
 
     @PostMapping("/logout")
