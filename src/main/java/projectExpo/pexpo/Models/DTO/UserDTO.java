@@ -1,8 +1,6 @@
 package projectExpo.pexpo.Models.DTO;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,5 +30,10 @@ public class UserDTO {
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     private String contrasena;
 
-    private long idCargo;
+    @NotNull(message = "El ID de cargo no puede ser nulo")
+    @Positive(message = "El ID de cargo debe ser positivo")
+    private Long idCargo;
+
+    //Campo adicional para mostrar el nombre de cargo, este campo como tal no existe en la tabla usuario.
+    private String nombreCargo;
 }

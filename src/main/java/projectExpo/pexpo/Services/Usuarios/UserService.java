@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import projectExpo.pexpo.Config.Argon2PasswordEncoder;
+import projectExpo.pexpo.Entities.Cargo.CargoEntity;
 import projectExpo.pexpo.Entities.Usuario.UserEntity;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExceptionsUsuarioNoEncontrado;
 import projectExpo.pexpo.Models.DTO.UserDTO;
+import projectExpo.pexpo.Repositories.Cargo.CargoRepository;
 import projectExpo.pexpo.Repositories.Usuario.UserRepository;
 
 import java.util.List;
@@ -18,10 +20,13 @@ import java.util.stream.Collectors;
 public class UserService {
 
     @Autowired
-    private UserRepository repo;
+    private UserRepository repoUser;
+
+    @Autowired
+    private CargoRepository repoCargo;
 
     public List<UserDTO> getAllUsers(){
-        List<UserEntity> usuarios = repo.findAll();
+        List<UserEntity> usuarios = repoUser.findAll();
         return usuarios.stream()
                 .map(this::convertirAUsuarioDTO)
                 .collect(Collectors.toList());
@@ -46,7 +51,7 @@ public class UserService {
             String contrasenaHash = argon2PasswordEncoder.HashPassword(userDto.getContrasena());
             userDto.setContrasena(contrasenaHash);
             UserEntity userEntity = convertirAUsuarioEntity(userDto);
-            UserEntity usuarioGuardado = repo.save(userEntity);
+            UserEntity usuarioGuardado = repoUser.save(userEntity);
             return convertirAUsuarioDTO(usuarioGuardado);
         }catch (Exception e){
             log.error("Error al registrar usuario: " + e.getMessage());
@@ -54,29 +59,40 @@ public class UserService {
         }
     }
 
-    public UserDTO actualizarUsuario(Long id, UserDTO usuario){
-        //Verificar existencia
-        UserEntity usuarioExistente = repo.findById(id).orElseThrow(() -> new ExceptionsUsuarioNoEncontrado("Usuario no encontrado"));
+    public UserDTO actualizarUsuario(Long id, UserDTO usuarioDto){
+        //1. Verificar existencia
+        UserEntity usuarioExistente = repoUser.findById(id).orElseThrow(() -> new ExceptionsUsuarioNoEncontrado("Usuario no encontrado"));
 
-        //Actualizar campos
-        usuarioExistente.setNombre(usuario.getNombre());
-        usuarioExistente.setApellido(usuario.getApellido());
-        usuarioExistente.setIdGrupoExpo(usuario.getIdGrupoExpo());
-        usuarioExistente.setIdRol(usuario.getIdRol());
-        usuarioExistente.setCorreo(usuario.getCorreo());
-        usuarioExistente.setIdCargo(usuario.getIdCargo());
+        //2. Actualizar campos
+        usuarioExistente.setNombre(usuarioDto.getNombre());
+        usuarioExistente.setApellido(usuarioDto.getApellido());
+        usuarioExistente.setIdGrupoExpo(usuarioDto.getIdGrupoExpo());
+        usuarioExistente.setIdRol(usuarioDto.getIdRol());
+        usuarioExistente.setCorreo(usuarioDto.getCorreo());
 
-        UserEntity usuarioActualizado = repo.save(usuarioExistente);
+        //3. Actualizar relación con Cargo
+        if (usuarioDto.getIdCargo() != null){
+            CargoEntity cargo = repoCargo.findById(usuarioDto.getIdCargo())
+                    .orElseThrow(() -> new IllegalArgumentException("Cargo no encontrado con ID proporcionado"));
+            usuarioExistente.setCargo(cargo);
+        }else {
+            usuarioExistente.setCargo(null);
+        }
+
+        //4. Guardar cambios
+        UserEntity usuarioActualizado = repoUser.save(usuarioExistente);
+
+        //5. Convertir a DTO
         return convertirAUsuarioDTO(usuarioActualizado);
     }
 
     public boolean removerUsuario(Long id){
         try{
             //Se valida la existencia del usuario previamente a la eliminación
-            UserEntity objUsuario = repo.findById(id).orElse(null);
+            UserEntity objUsuario = repoUser.findById(id).orElse(null);
             //Si objUsuario existe se procede a eliminar
             if (objUsuario != null){
-                repo.deleteById(id);
+                repoUser.deleteById(id);
                 return true;
             }else{
                 System.out.println("Usuario no encontrado.");
@@ -88,8 +104,11 @@ public class UserService {
     }
 
     // Metodo para convertir Entidad a DTO
+    //1. Se reciben todos los datos en formato Entity
     private UserDTO convertirAUsuarioDTO(UserEntity usuario) {
+        //2. Se crea un objeto de tipo dto
         UserDTO dto = new UserDTO();
+        //3. Se guardan todos los valores Entity en los atributos DTO
         dto.setId(usuario.getId());
         dto.setNombre(usuario.getNombre());
         dto.setApellido(usuario.getApellido());
@@ -97,12 +116,28 @@ public class UserService {
         dto.setIdRol(usuario.getIdRol());
         dto.setCorreo(usuario.getCorreo());
         dto.setContrasena(usuario.getContrasena());
-        dto.setIdCargo(usuario.getIdCargo());
+        /**
+         * 4. Si el cargo es diferente de null se procede a guardar el Cargo en el DTO
+         * En caso el cargo no sea diferente de null pues en el idCargo se guardará null
+         */
+        if (usuario.getCargo() != null){
+            dto.setNombreCargo(usuario.getCargo().getCargo());
+            dto.setIdCargo(usuario.getCargo().getId());
+        }else{
+            dto.setNombreCargo("Sin cargo asignado");
+            dto.setIdCargo(null);
+        }
+
+        //5. Se retornan los valores en formato dto.
         return dto;
     }
 
     // Metodo para convertir DTO a Entidad
+    // 1. Se reciben los datos en formato DTO
     private UserEntity convertirAUsuarioEntity(UserDTO dto) {
+        /** 2. Se crea el objeto usuario de tipo Entity, es decir se crea como una "CAJA" de tipo Entity que guardará
+         * todos los datos de tipo DTO.
+         */
         UserEntity usuario = new UserEntity();
         usuario.setNombre(dto.getNombre());
         usuario.setApellido(dto.getApellido());
@@ -110,7 +145,20 @@ public class UserService {
         usuario.setIdRol(dto.getIdRol());
         usuario.setCorreo(dto.getCorreo());
         usuario.setContrasena(dto.getContrasena());
-        usuario.setIdCargo(dto.getIdCargo());
+
+        /**
+         * Si el idCargo del DTO no posee ningún valor quiere decir que es NULL, de lo contrario será diferente de NULL
+         * En la condición preguntamos si el idCargo es diferente de NULL
+         */
+        if (dto.getIdCargo() != null){
+            /**Cuando entre a la condición, se crea un objeto de tipo CargoEntity que buscará el ID, en caso no sea encontrado
+             * se procede a lanzar una excepción indicando que no se encontró el cargo.
+             */
+            CargoEntity cargo = repoCargo.findById(dto.getIdCargo())
+                    .orElseThrow(() -> new IllegalArgumentException("Cargo no encontrado con ID: " + dto.getIdCargo()));
+            //Si el idCargo existe se procede a guardar el idCargo del DTO sobre idCargo del Entity
+            usuario.setCargo(cargo); //Usa setCargo() en lugar de setIdCargo()
+        }
         return usuario;
     }
 

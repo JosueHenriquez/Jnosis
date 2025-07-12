@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import projectExpo.pexpo.Entities.Cargo.CargoEntity;
 
 @Entity
 @Table(name = "TBUSUARIO")
@@ -35,6 +36,12 @@ public class UserEntity {
     @Column(name = "CONTRASENA")
     private String contrasena;
 
-    @Column(name = "IDCARGO")
-    private long idCargo;
+    /**
+     * Se define que el atributo cargo es de tipo CargoEntity y que este campo
+     * con JoinColumn(name -> apunta hacia la llave foranea
+     * referencedColumnName -> apunta hacia la llave primaria de la tabla Cargo
+     */
+    @ManyToOne
+    @JoinColumn(name = "IDCARGO", referencedColumnName = "IDCARGO")
+    private CargoEntity cargo;
 }

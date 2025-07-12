@@ -10,6 +10,7 @@ public class AppConfig {
 
     @Bean
     public JwtCookieAuthFilter jwtCookieAuthFilter(JWTUtils jwtUtils){
+
         return new JwtCookieAuthFilter(jwtUtils);
     }
 }
