@@ -8,7 +8,7 @@ import projectExpo.pexpo.Config.Argon2PasswordEncoder;
 import projectExpo.pexpo.Entities.Cargo.CargoEntity;
 import projectExpo.pexpo.Entities.Usuario.UserEntity;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExceptionsUsuarioNoEncontrado;
-import projectExpo.pexpo.Models.DTO.UserDTO;
+import projectExpo.pexpo.Models.DTO.Usuario.UserDTO;
 import projectExpo.pexpo.Repositories.Cargo.CargoRepository;
 import projectExpo.pexpo.Repositories.Usuario.UserRepository;
 
@@ -32,6 +32,11 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     *
+     * @param userDto
+     * @return retorna un objeto de tipo DTO
+     */
     public UserDTO insertUser(UserDTO userDto){
         /**
          * Se valida si el usuario es nulo, es decir, si contiene información.

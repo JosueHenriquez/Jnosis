@@ -1,12 +1,17 @@
 projectExpo\pexpo\Config\CorsConfig.class
+projectExpo\pexpo\Models\DTO\AuthResponse\AuthResponse.class
 projectExpo\pexpo\Config\SecurityConfig.class
+projectExpo\pexpo\Services\Rol\RolService.class
+projectExpo\pexpo\Services\Cargo\CargoService.class
 projectExpo\pexpo\Utils\JwtCookieAuthFilter.class
+projectExpo\pexpo\Controllers\Cargo\CargoController.class
 projectExpo\pexpo\Controllers\Usuario\UserController.class
+projectExpo\pexpo\Models\DTO\Usuario\UserDTO.class
 projectExpo\pexpo\ServletInitializer.class
+projectExpo\pexpo\Models\DTO\Cargo\CargoDTO.class
 projectExpo\pexpo\Controllers\Auth\AuthController.class
 projectExpo\pexpo\Services\Auth\AuthService.class
 projectExpo\pexpo\Entities\Cargo\CargoEntity.class
-projectExpo\pexpo\Models\DTO\AuthResponse.class
 projectExpo\pexpo\PexpoApplication.class
 projectExpo\pexpo\Utils\JWTUtils.class
 projectExpo\pexpo\Services\Usuarios\UserService.class
@@ -19,4 +24,7 @@ projectExpo\pexpo\Exceptions\ExcepUsuarios\ExceptionsUsuarioNoEncontrado.class
 projectExpo\pexpo\Config\Argon2PasswordEncoder.class
 projectExpo\pexpo\Repositories\Usuario\UserRepository.class
 projectExpo\pexpo\Repositories\Cargo\CargoRepository.class
-projectExpo\pexpo\Models\DTO\UserDTO.class
+projectExpo\pexpo\Models\DTO\Rol\RolDTO.class
+projectExpo\pexpo\Entities\Rol\RolEntity.class
+projectExpo\pexpo\Controllers\Rol\RolController.class
+projectExpo\pexpo\Repositories\Rol\RolRepository.class

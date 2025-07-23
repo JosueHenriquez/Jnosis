@@ -9,7 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExcepcionDatosDuplicados;
 import projectExpo.pexpo.Exceptions.ExcepUsuarios.ExceptionsUsuarioNoEncontrado;
-import projectExpo.pexpo.Models.DTO.UserDTO;
+import projectExpo.pexpo.Models.DTO.Usuario.UserDTO;
 import projectExpo.pexpo.Services.Usuarios.UserService;
 
 import java.time.Instant;

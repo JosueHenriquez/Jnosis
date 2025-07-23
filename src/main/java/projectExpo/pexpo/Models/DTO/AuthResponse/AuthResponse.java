@@ -1,4 +1,4 @@
-package projectExpo.pexpo.Models.DTO;
+package projectExpo.pexpo.Models.DTO.AuthResponse;
 
 public class AuthResponse {
     private String token;

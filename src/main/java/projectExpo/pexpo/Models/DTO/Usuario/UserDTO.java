@@ -1,4 +1,4 @@
-package projectExpo.pexpo.Models.DTO;
+package projectExpo.pexpo.Models.DTO.Usuario;
 
 import jakarta.validation.constraints.*;
 import lombok.EqualsAndHashCode;

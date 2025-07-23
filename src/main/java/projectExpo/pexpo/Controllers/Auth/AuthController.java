@@ -10,11 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import projectExpo.pexpo.Models.DTO.UserDTO;
+import projectExpo.pexpo.Models.DTO.Usuario.UserDTO;
 import projectExpo.pexpo.Services.Auth.AuthService;
 import projectExpo.pexpo.Utils.JWTUtils;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/api/auth")
