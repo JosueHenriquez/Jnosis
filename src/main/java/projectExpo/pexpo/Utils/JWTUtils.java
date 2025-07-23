@@ -5,6 +5,8 @@ package projectExpo.pexpo.Utils;
 import io.jsonwebtoken.*;           // Clases principales para trabajar con JWT
 import io.jsonwebtoken.io.Decoders; // Utilidades para decodificación
 import io.jsonwebtoken.security.Keys; // Utilidades para generación de claves seguras
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;            // Para logging
 import org.slf4j.LoggerFactory;     // Para inicialización del logger
 import org.springframework.beans.factory.annotation.Value; // Para inyección de propiedades
@@ -102,5 +104,28 @@ public class JWTUtils {
                 .build()                     // Construye el parser
                 .parseClaimsJws(jwt)        // Parsea y valida el token
                 .getBody();                 // Obtiene los claims (cuerpo del token)
+    }
+
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("authToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean validate(String token) {
+        try {
+            // Si parseClaims no lanza excepción, el token es válido
+            parseClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Token inválido: {}", e.getMessage());
+            return false;
+        }
     }
 }

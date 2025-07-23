@@ -6,10 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import projectExpo.pexpo.Models.DTO.Usuario.UserDTO;
 import projectExpo.pexpo.Services.Auth.AuthService;
 import projectExpo.pexpo.Utils.JWTUtils;
@@ -73,5 +70,14 @@ public class AuthController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok().body("Sesión cerrada exitosamente");
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        String token = jwtUtils.extractTokenFromRequest(request);
+        if (token == null || !jwtUtils.validate(token)) {
+            return ResponseEntity.status(401).body("Token inválido o ausente");
+        }
+        return ResponseEntity.ok("Token válido");
     }
 }
