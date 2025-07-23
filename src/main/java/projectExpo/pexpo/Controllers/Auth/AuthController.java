@@ -29,7 +29,7 @@ public class AuthController {
     @Autowired
     private AuthService serviceAuth;
 
-    @PostMapping(value = "/login")
+    @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserDTO DTOlog, HttpServletResponse response, HttpServletRequest request){
         //Se valida que los datos no esten vacíos
         if (!(DTOlog.getCorreo().isEmpty() || DTOlog.getContrasena().isEmpty())){
@@ -56,24 +56,24 @@ public class AuthController {
     void addTokenCookie(HttpServletResponse response, UserDTO DTOlog){
         String token = jwtUtils.create(String.valueOf(DTOlog.getId()), DTOlog.getNombre());
         //Crear la cookie
-        Cookie cookie = new Cookie("loginToken", token); //Nombre y valor de la cookie
+        Cookie cookie = new Cookie("authToken", token); //Nombre y valor de la cookie
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(1*24*60*60);
+        cookie.setMaxAge(86400); //Tiempo definido en segundos
         response.addCookie(cookie);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response){
-        //Crear cookie vacía para sobreescribir la existente
-        Cookie cookie = new Cookie("loginToken", null);
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response){
+        //1. Eliminar la cookie del cliente
+        Cookie cookie = new Cookie("authToken", null); //Nombre debe coincidir con la cookie del login
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge(0); //Expiración inmediata
-
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
-        return ResponseEntity.ok().body(Map.of("message", "Sessión cerrada exitosamente"));
+
+        return ResponseEntity.ok().body("Sesión cerrada exitosamente");
     }
 }

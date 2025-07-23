@@ -1,92 +1,106 @@
+// Declaración del paquete al que pertenece la clase
 package projectExpo.pexpo.Utils;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import jakarta.xml.bind.DatatypeConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.util.Date;
+// Importaciones necesarias para el manejo de JWT
+import io.jsonwebtoken.*;           // Clases principales para trabajar con JWT
+import io.jsonwebtoken.io.Decoders; // Utilidades para decodificación
+import io.jsonwebtoken.security.Keys; // Utilidades para generación de claves seguras
+import org.slf4j.Logger;            // Para logging
+import org.slf4j.LoggerFactory;     // Para inicialización del logger
+import org.springframework.beans.factory.annotation.Value; // Para inyección de propiedades
+import org.springframework.stereotype.Component; // Para marcar como componente Spring
+import javax.crypto.SecretKey;      // Para manejo de claves criptográficas
+import java.util.Base64;            // Para codificación/decodificación Base64 (aunque no se usa directamente)
+import java.util.Date;              // Para manejo de fechas
 
-/**
- * Para poder utilizar DatatypeConverte utiliza agrega la dependecia en el pom.xml
- * <dependency>
- *     <groupId>jakarta.xml.bind</groupId>
- *     <artifactId>jakarta.xml.bind-api</artifactId>
- *     <version>3.0.0</version>
- * </dependency>
- */
+// Anotación que marca esta clase como un componente de Spring
 @Component
 public class JWTUtils {
 
-    @Value("${security.jwt.secret}") String jwtSecreto;
-    @Value("${security.jwt.expiration}") long expiracionMs;
-    @Value("${security.jwt.issuer}") private String issuer;
+    // Inyección del secreto para firmar los JWT desde application.properties
+    @Value("${security.jwt.secret}")
+    private String jwtSecreto;
 
-    private final Logger log = LoggerFactory
-            .getLogger(JWTUtils.class);
+    // Inyección del tiempo de expiración en milisegundos
+    @Value("${security.jwt.expiration}")
+    private long expiracionMs;
 
-    public String create(String id, String nombre){
-        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+    // Inyección del emisor (issuer) del token
+    @Value("${security.jwt.issuer}")
+    private String issuer;
 
-        long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
+    // Logger para registrar eventos y errores
+    private final Logger log = LoggerFactory.getLogger(JWTUtils.class);
 
-        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(jwtSecreto);
-        Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
+    /**
+     * Método para crear un JWT
+     * @param id Identificador único para el token
+     * @param nombre Sujeto (subject) del token
+     * @return String con el JWT firmado
+     */
+    public String create(String id, String nombre) {
+        // Decodifica el secreto Base64 y crea una clave HMAC-SHA segura
+        SecretKey signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecreto));
 
-        JwtBuilder builder = Jwts.builder().setId(id).setIssuedAt(now).setSubject(nombre).setIssuer(issuer)
-                .signWith(signatureAlgorithm, signingKey);
+        // Obtiene la fecha actual y calcula la fecha de expiración
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + expiracionMs);
 
-        if (expiracionMs >= 0) {
-            long expMillis = nowMillis + expiracionMs;
-            Date exp = new Date(expMillis);
-            builder.setExpiration(exp);
-        }
-
-        // Builds the JWT and serializes it to a compact, URL-safe string
-        return builder.compact();
+        // Construye el JWT con todos sus componentes
+        return Jwts.builder()
+                .setId(id)                      // ID único (JWT ID)
+                .setIssuedAt(now)              // Fecha de emisión
+                .setSubject(nombre)             // Sujeto (usuario)
+                .setIssuer(issuer)              // Emisor del token
+                .setExpiration(expiracionMs >= 0 ? expiration : null) // Expiración (si es >= 0)
+                .signWith(signingKey, SignatureAlgorithm.HS256) // Firma con algoritmo HS256
+                .compact();                    // Convierte a String compacto
     }
 
     /**
-     * Method to validate and read the JWT
-     *
-     * @param jwt
-     * @return
+     * Obtiene el subject (nombre) del JWT
+     * @param jwt Token JWT como String
+     * @return String con el subject del token
      */
     public String getValue(String jwt) {
-        // This line will throw an exception if it is not a signed JWS (as
-        // expected)
-        Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(jwtSecreto))
-                .parseClaimsJws(jwt).getBody();
-
+        // Parsea los claims y devuelve el subject
+        Claims claims = parseClaims(jwt);
         return claims.getSubject();
     }
 
     /**
-     * Method to validate and read the JWT
-     *
-     * @param jwt
-     * @return
+     * Obtiene el ID del JWT
+     * @param jwt Token JWT como String
+     * @return String con el ID del token
      */
     public String getKey(String jwt) {
-        // This line will throw an exception if it is not a signed JWS (as
-        // expected)
-        Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(jwtSecreto))
-                .parseClaimsJws(jwt).getBody();
-
+        // Parsea los claims y devuelve el ID
+        Claims claims = parseClaims(jwt);
         return claims.getId();
     }
 
+    /**
+     * Parsea y valida un token JWT
+     * @param jwt Token a validar
+     * @return Claims (reclamaciones) del token
+     * @throws ExpiredJwtException Si el token está expirado
+     * @throws MalformedJwtException Si el token está mal formado
+     */
     public Claims parseToken(String jwt) throws ExpiredJwtException, MalformedJwtException {
-        return Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(jwtSecreto))
-                .parseClaimsJws(jwt)
-                .getBody();
+        return parseClaims(jwt);
+    }
+
+    /**
+     * Método privado para parsear los claims de un JWT
+     * @param jwt Token a parsear
+     * @return Claims del token
+     */
+    private Claims parseClaims(String jwt) {
+        // Configura el parser con la clave de firma y parsea el token
+        return Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecreto))) // Clave de firma
+                .build()                     // Construye el parser
+                .parseClaimsJws(jwt)        // Parsea y valida el token
+                .getBody();                 // Obtiene los claims (cuerpo del token)
     }
 }
