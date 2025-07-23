@@ -28,7 +28,7 @@ import java.util.Collections;
 public class JwtCookieAuthFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtCookieAuthFilter.class);
-    private static final String AUTH_COOKIE_NAME = "loginToken";
+    private static final String AUTH_COOKIE_NAME = "authToken";
     private final JWTUtils jwtUtils;
 
     @Autowired
@@ -37,9 +37,13 @@ public class JwtCookieAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws ServletException, IOException {
         // Excluir endpoints públicos
-        if (request.getRequestURI().equals("/api/auth/login")) {
+        if (request.getRequestURI().equals("/api/auth/login") || request.getRequestURI().equals("/api/auth/logout")) {
             filterChain.doFilter(request, response);
             return;
         }
